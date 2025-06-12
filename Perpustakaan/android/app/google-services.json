@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "4577595126",
+    "project_id": "perpustakaan-a89e1",
+    "storage_bucket": "perpustakaan-a89e1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:4577595126:android:5651b24fcb3044f2a4e6d7",
+        "android_client_info": {
+          "package_name": "com.Kyzux.perpustakaan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_c8MT579b_rl_lYZEEcIaPQRwmSUT448"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:4577595126:android:714c057f8b1c38f8a4e6d7",
+        "android_client_info": {
+          "package_name": "com.example.perpustakaan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_c8MT579b_rl_lYZEEcIaPQRwmSUT448"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
