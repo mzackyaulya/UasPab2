@@ -14,7 +14,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     BukuPage(),
     AnggotaPage(),
-    PeminjamanPage(),
+    PeminjamanPage(role: 'admin'),
   ];
 
 
