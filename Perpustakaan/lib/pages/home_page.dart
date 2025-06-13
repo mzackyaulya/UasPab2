@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:perpustakaan/pages/buku_page.dart';
 import 'package:perpustakaan/pages/anggota_page.dart';
 import 'package:perpustakaan/pages/peminjaman_page.dart';
+import 'package:perpustakaan/pages/search_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,7 +15,8 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     BukuPage(),
     AnggotaPage(),
-    PeminjamanPage(role: 'admin'),
+    // PeminjamanPage(role: 'admin'),
+    SearchPage(),
   ];
 
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:perpustakaan/models/buku.dart';
+import 'package:perpustakaan/pages/search_page.dart';
 import 'package:perpustakaan/services/firebase_service.dart';
 import 'package:perpustakaan/widgets/buku_form.dart';
 import 'package:perpustakaan/details/detail_buku.dart';
@@ -25,6 +26,17 @@ class BukuPage extends StatelessWidget {
             color: Colors.black,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchPage()),
+              );
+            },
+          ),
+        ],
         centerTitle: true,
         elevation: 4,
         flexibleSpace: Container(
