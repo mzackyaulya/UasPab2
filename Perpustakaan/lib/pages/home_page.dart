@@ -14,11 +14,10 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     BukuPage(),
-    AnggotaPage(),
-    // PeminjamanPage(role: 'admin'),
     SearchPage(),
+    AnggotaPage(),
+    PeminjamanPage(),
   ];
-
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
@@ -29,12 +28,29 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        selectedItemColor: Colors.red,
+        unselectedItemColor: Colors.grey[600],
+        backgroundColor: Colors.white,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Buku'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Anggota'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Peminjaman'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Buku',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Cari',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: 'Anggota',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment_turned_in),
+            label: 'Peminjaman',
+          ),
         ],
       ),
     );

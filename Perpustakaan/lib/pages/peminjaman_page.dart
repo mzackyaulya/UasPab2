@@ -1,3 +1,24 @@
+import 'package:flutter/material.dart';
+
+class PeminjamanPage extends StatefulWidget {
+  const PeminjamanPage({super.key});
+
+  @override
+  State<PeminjamanPage> createState() => _PeminjamanPageState();
+}
+
+class _PeminjamanPageState extends State<PeminjamanPage> {
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+
+
+
+
+
+
 // import 'package:flutter/material.dart';
 // import 'anggota_page.dart'; // pastikan file anggota_page.dart berisi daftar anggota
 //

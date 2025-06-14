@@ -131,7 +131,7 @@ class BukuPage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.book_rounded),
         onPressed: () {
           Navigator.push(
             context,

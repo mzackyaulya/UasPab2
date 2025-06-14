@@ -7,6 +7,8 @@ class Buku {
   final int stok;
   final String foto;
   final int tahunTerbit;
+  final String genre;
+  final String deskripsi;
 
   Buku({
     required this.id,
@@ -15,6 +17,8 @@ class Buku {
     required this.stok,
     required this.foto,
     required this.tahunTerbit,
+    required this.genre,
+    required this.deskripsi,
   });
 
   factory Buku.fromFirestore(DocumentSnapshot doc) {
@@ -26,6 +30,8 @@ class Buku {
       stok: data['stok'] ?? 0,
       foto: data['foto'] ?? '',
       tahunTerbit: data['tahunTerbit'] ?? 0,
+      genre: data['genre'] ?? '',
+      deskripsi: data['deskripsi'] ?? '',
     );
   }
 
@@ -36,6 +42,8 @@ class Buku {
       'stok': stok,
       'foto': foto,
       'tahunTerbit': tahunTerbit,
+      'genre': genre,
+      'deskripsi': deskripsi,
     };
   }
 }

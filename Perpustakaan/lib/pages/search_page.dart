@@ -48,11 +48,25 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Cari Buku"),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.red,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(56),
+        child: AppBar(
+          title: const Text("Cari Buku"),
+          centerTitle: true,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.red,
+                  Colors.white,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [

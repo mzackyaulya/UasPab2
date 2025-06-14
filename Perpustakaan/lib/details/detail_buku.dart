@@ -50,7 +50,7 @@ class DetailBukuPage extends StatelessWidget {
                       child: const Text("Batal"),
                     ),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.lightBlueAccent),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                       onPressed: () => Navigator.pop(context, true),
                       child: const Text("Hapus"),
                     ),
@@ -69,7 +69,7 @@ class DetailBukuPage extends StatelessWidget {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.red, Colors.white70],
+              colors: [Colors.red, Colors.white],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -86,15 +86,19 @@ class DetailBukuPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: Image.network(imageUrl, height: 280),
               ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
+
             const Text(
-              "📝 Abstrak",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              "📖 Informasi Buku 📖",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+
             _buildInfoTable([
               _infoRow("Judul", buku.judul),
               _infoRow("Penulis", buku.penulis),
+              _infoRow("Genre", buku.genre),
+              _infoRow("Deskripsi", buku.deskripsi),
               _infoRow("Tahun Terbit", buku.tahunTerbit.toString()),
               _infoRow("Stok", buku.stok.toString()),
             ]),
