@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:perpustakaan/pages/buku_page.dart';
-import 'package:perpustakaan/pages/anggota_page.dart';
+import 'package:perpustakaan/pages/list_anggota_page.dart'; // ganti ini
 import 'package:perpustakaan/pages/peminjaman_page.dart';
 import 'package:perpustakaan/pages/search_page.dart';
 
@@ -15,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     BukuPage(),
     SearchPage(),
-    AnggotaPage(),
+    ListAnggotaPage(), // ← ganti dari AnggotaPage()
     PeminjamanPage(),
   ];
 

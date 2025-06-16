@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:perpustakaan/firebase_options.dart';
+import 'package:perpustakaan/models/anggota.dart';
+import 'package:perpustakaan/pages/anggota_page.dart';
 import 'package:perpustakaan/pages/home_page.dart';
 
 void main() async {
@@ -22,3 +24,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+ 
