@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../models/peminjaman.dart';
+import '../models/buku.dart';
+import '../services/firebase_service.dart';
+import '../widgets/peminjaman_form.dart';
 
 class PeminjamanPage extends StatefulWidget {
   const PeminjamanPage({super.key});
@@ -8,184 +12,124 @@ class PeminjamanPage extends StatefulWidget {
 }
 
 class _PeminjamanPageState extends State<PeminjamanPage> {
+  final List<Peminjaman> _listPeminjaman = [];
+  List<Buku> _listBuku = [];
+  final FirebaseService _firebaseService = FirebaseService();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDataBuku();
+  }
+
+  Future<void> _loadDataBuku() async {
+    try {
+      final buku = await _firebaseService.getDaftarBuku();
+      setState(() {
+        _listBuku = buku;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Gagal mengambil data buku: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _tambahPeminjaman(Peminjaman peminjaman) async {
+    await _firebaseService.tambahPeminjaman(peminjaman);
+  }
+
+  void _bukaFormPeminjaman() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: FormPeminjaman(
+          daftarBuku: _listBuku,
+          onSubmit: _tambahPeminjaman,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder<List<Peminjaman>>(
+        stream: _firebaseService.getPeminjaman(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            print('🔥 Error saat mengambil data: ${snapshot.error}');
+            return const Center(child: Text('Terjadi kesalahan saat mengambil data'));
+          }
+
+
+          final data = snapshot.data;
+
+          if (data == null || data.isEmpty) {
+            return const Center(child: Text('Belum ada peminjaman'));
+          }
+
+          return ListView.builder(
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              final p = data[index];
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400), // Garis tepi
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.bookmark, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Nama : ${p.namaAnggota}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                          Text('Buku : ${p.barang}', style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                          Text(
+                            'Tanggal : ${p.tanggalPinjam.day}/${p.tanggalPinjam.month} - ${p.tanggalKembali.day}/${p.tanggalKembali.month}',
+                            style: const TextStyle(fontSize: 14, color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      label: const Text('Hapus', style: TextStyle(color: Colors.red)),
+                      onPressed: () async {
+                        await _firebaseService.hapusPeminjaman(p.id);
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: _listBuku.isNotEmpty ? _bukaFormPeminjaman : null,
+        child: const Icon(Icons.add),
+      ),
+    );
   }
 }
-
-
-
-
-
-
-// import 'package:flutter/material.dart';
-// import 'anggota_page.dart'; // pastikan file anggota_page.dart berisi daftar anggota
-//
-// class PeminjamanPage extends StatefulWidget {
-//   final String role; // "admin" atau "anggota"
-//
-//   const PeminjamanPage({super.key, required this.role});
-//
-//   @override
-//   State<PeminjamanPage> createState() => _PeminjamanPageState();
-// }
-//
-// class _PeminjamanPageState extends State<PeminjamanPage> {
-//   final _formKey = GlobalKey<FormState>();
-//   final _barangController = TextEditingController();
-//   Anggota? selectedAnggota;
-//   DateTime? tanggalPinjam;
-//   DateTime? tanggalKembali;
-//
-//   List<Map<String, dynamic>> riwayatPeminjaman = [];
-//
-//   void _pilihTanggal(BuildContext context, bool isTanggalPinjam) async {
-//     final picked = await showDatePicker(
-//       context: context,
-//       initialDate: DateTime.now(),
-//       firstDate: DateTime(2020),
-//       lastDate: DateTime(2100),
-//     );
-//
-//     if (picked != null) {
-//       setState(() {
-//         if (isTanggalPinjam) {
-//           tanggalPinjam = picked;
-//         } else {
-//           tanggalKembali = picked;
-//         }
-//       });
-//     }
-//   }
-//
-//   void _submitForm() {
-//     if (_formKey.currentState!.validate() &&
-//         selectedAnggota != null &&
-//         tanggalPinjam != null &&
-//         tanggalKembali != null) {
-//       setState(() {
-//         riwayatPeminjaman.add({
-//           'anggota': selectedAnggota!.nama,
-//           'barang': _barangController.text,
-//           'tanggalPinjam': tanggalPinjam,
-//           'tanggalKembali': tanggalKembali,
-//         });
-//         _barangController.clear();
-//         selectedAnggota = null;
-//         tanggalPinjam = null;
-//         tanggalKembali = null;
-//       });
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final isAdmin = widget.role == 'admin';
-//     final anggotaList = getAnggotaList();
-//
-//     return Scaffold(
-//       appBar: AppBar(title: Text("Peminjaman Buku")),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Column(
-//           children: [
-//             if (isAdmin)
-//               Form(
-//                 key: _formKey,
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     DropdownButtonFormField<Anggota>(
-//                       value: selectedAnggota,
-//                       decoration: InputDecoration(labelText: 'Pilih Anggota'),
-//                       items: anggotaList.map((anggota) {
-//                         return DropdownMenuItem(
-//                           value: anggota,
-//                           child: Text(anggota.nama),
-//                         );
-//                       }).toList(),
-//                       onChanged: (value) {
-//                         setState(() {
-//                           selectedAnggota = value;
-//                         });
-//                       },
-//                       validator: (value) =>
-//                       value == null ? 'Wajib pilih anggota' : null,
-//                     ),
-//                     TextFormField(
-//                       controller: _barangController,
-//                       decoration: InputDecoration(labelText: 'Nama Barang'),
-//                       validator: (value) =>
-//                       value == null || value.isEmpty ? 'Isi nama barang' : null,
-//                     ),
-//                     const SizedBox(height: 8),
-//                     Row(
-//                       children: [
-//                         Expanded(
-//                           child: Text(
-//                             tanggalPinjam == null
-//                                 ? 'Tanggal Pinjam belum dipilih'
-//                                 : 'Tanggal Pinjam: ${tanggalPinjam!.toLocal()}'.split(' ')[0],
-//                           ),
-//                         ),
-//                         ElevatedButton(
-//                           onPressed: () => _pilihTanggal(context, true),
-//                           child: Text("Pilih Tanggal Pinjam"),
-//                         ),
-//                       ],
-//                     ),
-//                     Row(
-//                       children: [
-//                         Expanded(
-//                           child: Text(
-//                             tanggalKembali == null
-//                                 ? 'Tanggal Kembali belum dipilih'
-//                                 : 'Tanggal Kembali: ${tanggalKembali!.toLocal()}'.split(' ')[0],
-//                           ),
-//                         ),
-//                         ElevatedButton(
-//                           onPressed: () => _pilihTanggal(context, false),
-//                           child: Text("Pilih Tanggal Kembali"),
-//                         ),
-//                       ],
-//                     ),
-//                     const SizedBox(height: 10),
-//                     ElevatedButton(
-//                       onPressed: _submitForm,
-//                       child: Text("Simpan Peminjaman"),
-//                     ),
-//                     const Divider(height: 30),
-//                   ],
-//                 ),
-//               ),
-//             const SizedBox(height: 10),
-//             Text(
-//               "Riwayat Peminjaman",
-//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-//             ),
-//             Expanded(
-//               child: riwayatPeminjaman.isEmpty
-//                   ? Center(child: Text("Belum ada peminjaman"))
-//                   : ListView.builder(
-//                 itemCount: riwayatPeminjaman.length,
-//                 itemBuilder: (context, index) {
-//                   final item = riwayatPeminjaman[index];
-//                   return ListTile(
-//                     title: Text(item['barang']),
-//                     subtitle: Text(
-//                       "Anggota: ${item['anggota']}\n"
-//                           "Pinjam: ${item['tanggalPinjam'].toLocal().toString().split(' ')[0]} - "
-//                           "Kembali: ${item['tanggalKembali'].toLocal().toString().split(' ')[0]}",
-//                     ),
-//                     isThreeLine: true,
-//                   );
-//                 },
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

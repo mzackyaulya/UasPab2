@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Peminjaman {
   final String id;
   final String namaAnggota;
@@ -13,25 +15,40 @@ class Peminjaman {
     required this.tanggalKembali,
   });
 
-  // Optional: untuk konversi ke Map (jika ingin disimpan ke database / JSON)
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'namaAnggota': namaAnggota,
-      'barang': barang,
-      'tanggalPinjam': tanggalPinjam.toIso8601String(),
-      'tanggalKembali': tanggalKembali.toIso8601String(),
-    };
+  // 🟩 1. Letakkan di atas
+  static DateTime _parseTanggal(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    } else if (value is String) {
+      return DateTime.tryParse(value) ?? DateTime.now();
+    } else {
+      throw FormatException('Format tanggal tidak dikenali: $value');
+    }
   }
 
-  // Optional: untuk konversi dari Map
-  factory Peminjaman.fromMap(Map<String, dynamic> map) {
+  // 🟩 2. Factory constructor yang memanggil fungsi static
+  factory Peminjaman.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>?;
+
+    if (data == null) {
+      throw StateError('Dokumen kosong atau tidak valid');
+    }
+
     return Peminjaman(
-      id: map['id'],
-      namaAnggota: map['namaAnggota'],
-      barang: map['barang'],
-      tanggalPinjam: DateTime.parse(map['tanggalPinjam']),
-      tanggalKembali: DateTime.parse(map['tanggalKembali']),
+      id: doc.id,
+      namaAnggota: data['namaAnggota'] ?? '',
+      barang: data['barang'] ?? '',
+      tanggalPinjam: _parseTanggal(data['tanggalPinjam']),
+      tanggalKembali: _parseTanggal(data['tanggalKembali']),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'namaAnggota': namaAnggota,
+      'barang': barang,
+      'tanggalPinjam': Timestamp.fromDate(tanggalPinjam),
+      'tanggalKembali': Timestamp.fromDate(tanggalKembali),
+    };
   }
 }

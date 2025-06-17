@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:perpustakaan/models/anggota.dart';
+import 'package:perpustakaan/pages/anggota_page.dart';
 import 'package:perpustakaan/pages/buku_page.dart';
 import 'package:perpustakaan/pages/list_anggota_page.dart'; // ganti ini
 import 'package:perpustakaan/pages/peminjaman_page.dart';
@@ -14,7 +16,6 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     BukuPage(),
-    SearchPage(),
     ListAnggotaPage(), // ← ganti dari AnggotaPage()
     PeminjamanPage(),
   ];
@@ -38,10 +39,6 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.book),
             label: 'Buku',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Cari',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
