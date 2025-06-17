@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:perpustakaan/models/anggota.dart';
-import 'package:perpustakaan/pages/anggota_page.dart';
 import 'package:perpustakaan/pages/buku_page.dart';
-import 'package:perpustakaan/pages/list_anggota_page.dart'; // ganti ini
+import 'package:perpustakaan/pages/list_anggota_page.dart';
 import 'package:perpustakaan/pages/peminjaman_page.dart';
-import 'package:perpustakaan/pages/search_page.dart';
+import 'package:perpustakaan/pages/profile_page.dart'; // ✅ Tambah import
 
 class HomePage extends StatefulWidget {
   @override
@@ -16,8 +14,9 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     BukuPage(),
-    ListAnggotaPage(), // ← ganti dari AnggotaPage()
+    ListAnggotaPage(),
     PeminjamanPage(),
+    ProfilePage(), // ✅ Tambah halaman profile
   ];
 
   void _onItemTapped(int index) {
@@ -47,6 +46,10 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment_turned_in),
             label: 'Peminjaman',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person), // ✅ Icon profil
+            label: 'Profil',
           ),
         ],
       ),
