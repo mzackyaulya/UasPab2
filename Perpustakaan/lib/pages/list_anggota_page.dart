@@ -1,7 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:perpustakaan/models/anggota.dart';
-import 'package:perpustakaan/services/anggota_service.dart';
-import 'package:perpustakaan/pages/anggota_page.dart';
 
 class ListAnggotaPage extends StatefulWidget {
   const ListAnggotaPage({super.key});
@@ -11,86 +10,217 @@ class ListAnggotaPage extends StatefulWidget {
 }
 
 class _ListAnggotaPageState extends State<ListAnggotaPage> {
-  final AnggotaService _anggotaService = AnggotaService();
-  List<Anggota> _anggotaList = [];
+  List<Map<String, dynamic>> _anggotaList = [];
+  String? currentUserId;
+  String? currentUserRole;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadAnggota();
+    _initUserAndLoadData();
+  }
+
+  Future<void> _initUserAndLoadData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _loading = false;
+      });
+      return;
+    }
+
+    currentUserId = user.uid;
+
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
+    if (userDoc.exists) {
+      currentUserRole = userDoc.data()?['role'] as String?;
+    }
+
+    await _loadAnggota();
   }
 
   Future<void> _loadAnggota() async {
-    final data = await _anggotaService.ambilSemuaAnggota();
+    List<Map<String, dynamic>> anggota = [];
+
+    if (currentUserRole == 'admin') {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'anggota')
+          .get();
+
+      anggota = snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } else if (currentUserRole == 'anggota') {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        data['id'] = doc.id;
+        anggota = [data];
+      }
+    }
+
     setState(() {
-      _anggotaList = data;
+      _anggotaList = anggota;
+      _loading = false;
     });
   }
 
   void _hapusAnggota(String id) async {
-    await _anggotaService.hapusAnggota(id);
-    _loadAnggota();
-  }
+    if (currentUserRole != 'admin') return;
 
-  void _keHalamanForm([Anggota? anggota]) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AnggotaPage(anggota: anggota),
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Konfirmasi'),
+        content: const Text('Yakin ingin menghapus anggota ini?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+        ],
       ),
     );
-    _loadAnggota();
+
+    if (confirmed == true) {
+      await FirebaseFirestore.instance.collection('users').doc(id).delete();
+      await _loadAnggota();
+    }
+  }
+
+  DataCell _centeredCell(String text) {
+    return DataCell(
+      Align(
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 11),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Anggota')),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.red, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          title: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.person, color: Colors.black),
+                SizedBox(width: 8),
+                Text(
+                  'Daftar Anggota',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.person, color: Colors.black),
+              ],
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ElevatedButton.icon(
-              onPressed: () => _keHalamanForm(),
-              icon: const Icon(Icons.add),
-              label: const Text('Tambah Anggota'),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Responsif: jika terlalu kecil, scroll horizontal
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: Table(
-                          border: TableBorder.all(color: Colors.grey),
-                          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                          columnWidths: const {
-                            0: FixedColumnWidth(40),
-                            1: FixedColumnWidth(120),
-                            2: FixedColumnWidth(150),
-                            3: FixedColumnWidth(200),
-                            4: FixedColumnWidth(120),
-                            5: FixedColumnWidth(150),
-                            6: FixedColumnWidth(120),
-                          },
-                          children: [
-                            _buildHeader(),
-                            ..._anggotaList.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final anggota = entry.value;
-                              return _buildRow(index, anggota);
-                            }).toList(),
-                          ],
+              child: _anggotaList.isNotEmpty
+                  ? FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topLeft,
+                child: DataTable(
+                  columnSpacing: 10,
+                  dataRowMinHeight: 36,
+                  dataRowMaxHeight: 44,
+                  headingRowHeight: 42,
+                  headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.blue.shade50),
+                  border: TableBorder.all(color: Colors.grey.shade300),
+                  columns: [
+                    const DataColumn(label: Center(child: _TableHeader('No', fontSize: 12))),
+                    const DataColumn(label: Center(child: _TableHeader('NIS', fontSize: 12))),
+                    const DataColumn(label: Center(child: _TableHeader('Nama', fontSize: 12))),
+                    const DataColumn(label: Center(child: _TableHeader('Email', fontSize: 12))),
+                    const DataColumn(label: Center(child: _TableHeader('Jurusan', fontSize: 12))),
+                    const DataColumn(label: Center(child: _TableHeader('Lahir', fontSize: 12))),
+                    if (currentUserRole == 'admin')
+                      DataColumn(label: Center(child: _TableHeader('Aksi', fontSize: 12))),
+                  ],
+                  rows: _anggotaList.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final data = entry.value;
+
+                    final cells = <DataCell>[
+                      _centeredCell('${index + 1}'),
+                      _centeredCell(data['nis'] ?? '-'),
+                      _centeredCell(data['nama'] ?? '-'),
+                      _centeredCell(data['email'] ?? '-'),
+                      _centeredCell(data['jurusan'] ?? '-'),
+                      _centeredCell(data['tanggalLahir'] ?? '-'),
+                    ];
+
+                    if (currentUserRole == 'admin') {
+                      cells.add(
+                        DataCell(
+                          Align(
+                            alignment: Alignment.center,
+                            child: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                              onPressed: () => _hapusAnggota(data['id']),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
                         ),
-                      ),
+                      );
+                    }
+
+                    return DataRow(cells: cells);
+                  }).toList(),
+                ),
+              )
+                  : Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.grey, size: 48),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Belum ada data anggota.',
+                      style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
             ),
           ],
@@ -98,74 +228,21 @@ class _ListAnggotaPageState extends State<ListAnggotaPage> {
       ),
     );
   }
-
-  TableRow _buildHeader() {
-    return TableRow(
-      decoration: BoxDecoration(color: Colors.blue.shade100),
-      children: const [
-        _HeaderCell('No'),
-        _HeaderCell('NIS'),
-        _HeaderCell('Nama'),
-        _HeaderCell('Email'),
-        _HeaderCell('Jurusan'),
-        _HeaderCell('Tanggal Lahir'),
-        _HeaderCell('Aksi'),
-      ],
-    );
-  }
-
-  TableRow _buildRow(int index, Anggota anggota) {
-    return TableRow(
-      children: [
-        _cell((index + 1).toString()),
-        _cell(anggota.nis),
-        _cell(anggota.nama),
-        _cell(anggota.email),
-        _cell(anggota.jurusan),
-        _cell(anggota.tanggalLahir),
-        _cellButton(anggota),
-      ],
-    );
-  }
-
-  Widget _cell(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Text(text, style: const TextStyle(fontSize: 14)),
-    );
-  }
-
-  Widget _cellButton(Anggota anggota) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.orange),
-            onPressed: () => _keHalamanForm(anggota),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _hapusAnggota(anggota.id!),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class _HeaderCell extends StatelessWidget {
+// Helper widget untuk header tabel
+class _TableHeader extends StatelessWidget {
   final String title;
-  const _HeaderCell(this.title);
+  final double fontSize;
+  const _TableHeader(this.title, {this.fontSize = 14, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(4.0),
       child: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        style: TextStyle(fontWeight: FontWeight.w600, fontSize: fontSize),
         textAlign: TextAlign.center,
       ),
     );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:perpustakaan/pages/buku_page.dart';
 import 'package:perpustakaan/pages/list_anggota_page.dart';
 import 'package:perpustakaan/pages/peminjaman_page.dart';
-import 'package:perpustakaan/pages/profile_page.dart'; // ✅ Tambah import
+import 'package:perpustakaan/pages/profil/profile_page.dart'; // ✅ Tambah import
 
 class HomePage extends StatefulWidget {
   @override

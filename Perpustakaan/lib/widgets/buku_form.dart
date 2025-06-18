@@ -153,7 +153,7 @@ class _BukuFormPageState extends State<BukuFormPage> {
                             await firebaseService.tambahBuku(data);
                           }
 
-                          Navigator.pop(context);
+                          Navigator.pop(context, true);
                         }
                       },
                       child: Text(

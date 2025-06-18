@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:perpustakaan/pages/login_page.dart'; // Sesuaikan path login_page.dart
+import 'package:perpustakaan/pages/login_page.dart';
+import 'package:perpustakaan/pages/profil/edit_profile_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -18,11 +19,17 @@ class ProfilePage extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Konfirmasi Logout"),
-        content: Text("Apakah kamu yakin ingin logout?"),
+        title: const Text("Konfirmasi Logout"),
+        content: const Text("Apakah kamu yakin ingin logout?"),
         actions: [
-          TextButton(child: Text("Batal"), onPressed: () => Navigator.pop(context, false)),
-          ElevatedButton(child: Text("Logout"), onPressed: () => Navigator.pop(context, true)),
+          TextButton(
+            child: const Text("Batal"),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          ElevatedButton(
+            child: const Text("Logout"),
+            onPressed: () => Navigator.pop(context, true),
+          ),
         ],
       ),
     );
@@ -31,7 +38,7 @@ class ProfilePage extends StatelessWidget {
       await FirebaseAuth.instance.signOut();
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) =>  LoginPage()),
+        MaterialPageRoute(builder: (context) => LoginPage()),
         (route) => false,
       );
     }
@@ -40,7 +47,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primaryColor = Colors.red.shade700;
-    final backgroundColor = Color(0xFFF9EAFE); // Latar belakang ungu muda
+    final backgroundColor = const Color(0xFFF9EAFE);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -74,18 +81,18 @@ class ProfilePage extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         "Halo, ${data['nama']}",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 30),
 
-                  // Card Biodata Gabungan — Putih solid
+                  // Card Biodata
                   Card(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 4,
-                    color: Colors.white, // <-- putih solid
+                    color: Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                       child: Column(
@@ -98,8 +105,47 @@ class ProfilePage extends StatelessWidget {
                           infoRow(Icons.phone_outlined, "No. Telepon", data['telepon']),
                           const SizedBox(height: 14),
                           infoRow(Icons.vpn_key_outlined, "UID", data['uid']),
+                          if (data.containsKey('nis')) ...[
+                            const SizedBox(height: 14),
+                            infoRow(Icons.badge_outlined, "NIS", data['nis']),
+                          ],
+                          if (data.containsKey('jurusan')) ...[
+                            const SizedBox(height: 14),
+                            infoRow(Icons.school_outlined, "Jurusan", data['jurusan']),
+                          ],
+                          if (data.containsKey('tanggalLahir')) ...[
+                            const SizedBox(height: 14),
+                            infoRow(Icons.cake_outlined, "Tanggal Lahir", data['tanggalLahir']),
+                          ],
                         ],
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Tombol Edit
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.edit, color: Colors.red),
+                      label: const Text(
+                        "Edit Profil",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: primaryColor),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditProfilePage(initialData: data),
+                          ),
+                        );
+                      },
                     ),
                   ),
 
@@ -141,8 +187,8 @@ class ProfilePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Text(value, style: TextStyle(fontSize: 14)),
+              Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(value, style: const TextStyle(fontSize: 14)),
             ],
           ),
         ),

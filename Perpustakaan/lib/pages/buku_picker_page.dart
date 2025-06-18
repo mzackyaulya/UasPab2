@@ -18,7 +18,7 @@ class BukuPickerPage extends StatelessWidget {
             title: Text(buku.judul),
             subtitle: Text("Penulis: ${buku.penulis}"),
             onTap: () {
-              Navigator.pop(context, buku.judul); // kirim kembali ke form
+              Navigator.pop(context, buku.judul);
             },
           );
         },

@@ -3,7 +3,7 @@ import 'package:perpustakaan/models/anggota.dart';
 
 class AnggotaService {
   final CollectionReference _anggotaRef =
-      FirebaseFirestore.instance.collection('anggota');
+  FirebaseFirestore.instance.collection('anggota');
 
   Future<void> tambahAnggota(Anggota anggota) async {
     await _anggotaRef.add(anggota.toJson());
@@ -11,7 +11,7 @@ class AnggotaService {
 
   Future<void> editAnggota(Anggota anggota) async {
     if (anggota.id != null) {
-      await _anggotaRef.doc(anggota.id).update(anggota.toJson());
+      await _anggotaRef.doc(anggota.id!).update(anggota.toJson());
     }
   }
 
@@ -23,9 +23,7 @@ class AnggotaService {
     final snapshot = await _anggotaRef.get();
     return snapshot.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
-      final anggota = Anggota.fromJson(data);
-      anggota.id = doc.id;
-      return anggota;
+      return Anggota.fromJson(data, doc.id);
     }).toList();
   }
 }

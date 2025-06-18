@@ -45,6 +45,11 @@ class FirebaseService {
         .doc(p.id)
         .set(p.toMap()); // pakai .set dan doc(id)
   }
+
+  Future<void> updatePeminjaman(String id, Peminjaman p) async {
+    await _db.collection('peminjaman').doc(id).update(p.toMap());
+  }
+
   Future<void> hapusPeminjaman(String id) async {
     await FirebaseFirestore.instance.collection('peminjaman').doc(id).delete();
   }

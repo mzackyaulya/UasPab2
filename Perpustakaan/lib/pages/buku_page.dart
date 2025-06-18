@@ -5,15 +5,60 @@ import 'package:perpustakaan/services/firebase_service.dart';
 import 'package:perpustakaan/widgets/buku_form.dart';
 import 'package:perpustakaan/details/detail_buku.dart';
 import 'package:perpustakaan/card/buku_card.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+class BukuPage extends StatefulWidget {
+  const BukuPage({super.key});
 
-class BukuPage extends StatelessWidget {
+  @override
+  State<BukuPage> createState() => _BukuPageState();
+}
+
+class _BukuPageState extends State<BukuPage> {
   final FirebaseService firebaseService = FirebaseService();
 
-  BukuPage({super.key});
+  String? currentUserRole;
+  bool _loadingRole = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        currentUserRole = null;
+        _loadingRole = false;
+      });
+      return;
+    }
+
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      setState(() {
+        currentUserRole = doc.data()?['role'] as String?;
+        _loadingRole = false;
+      });
+    } else {
+      setState(() {
+        currentUserRole = null;
+        _loadingRole = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_loadingRole) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -129,7 +174,8 @@ class BukuPage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: currentUserRole == 'admin'
+          ? FloatingActionButton(
         backgroundColor: Colors.lightBlueAccent,
         child: const Icon(Icons.book_rounded),
         onPressed: () {
@@ -140,7 +186,8 @@ class BukuPage extends StatelessWidget {
             ),
           );
         },
-      ),
+      )
+          : null,
     );
   }
 }
