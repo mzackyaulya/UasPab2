@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:perpustakaan/models/buku.dart';
 import 'package:perpustakaan/pages/search_page.dart';
 import 'package:perpustakaan/services/firebase_service.dart';
 import 'package:perpustakaan/widgets/buku_form.dart';
 import 'package:perpustakaan/details/detail_buku.dart';
 import 'package:perpustakaan/card/buku_card.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BukuPage extends StatefulWidget {
   const BukuPage({super.key});
@@ -17,7 +17,6 @@ class BukuPage extends StatefulWidget {
 
 class _BukuPageState extends State<BukuPage> {
   final FirebaseService firebaseService = FirebaseService();
-
   String? currentUserRole;
   bool _loadingRole = true;
 
@@ -27,9 +26,13 @@ class _BukuPageState extends State<BukuPage> {
     _loadUserRole();
   }
 
+  /// Fungsi untuk mengambil role pengguna dari Firestore
   Future<void> _loadUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
+      debugPrint('User is null');
+      if (!mounted) return;
       setState(() {
         currentUserRole = null;
         _loadingRole = false;
@@ -37,13 +40,31 @@ class _BukuPageState extends State<BukuPage> {
       return;
     }
 
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    if (doc.exists) {
-      setState(() {
-        currentUserRole = doc.data()?['role'] as String?;
-        _loadingRole = false;
-      });
-    } else {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!mounted) return;
+
+      if (doc.exists) {
+        final role = doc.data()?['role'] as String?;
+        debugPrint('User role: $role');
+        setState(() {
+          currentUserRole = role;
+          _loadingRole = false;
+        });
+      } else {
+        debugPrint('User document does not exist');
+        setState(() {
+          currentUserRole = null;
+          _loadingRole = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching user role: $e');
+      if (!mounted) return;
       setState(() {
         currentUserRole = null;
         _loadingRole = false;
@@ -53,6 +74,7 @@ class _BukuPageState extends State<BukuPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Tampilkan loading saat role sedang diambil
     if (_loadingRole) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -94,6 +116,8 @@ class _BukuPageState extends State<BukuPage> {
           ),
         ),
       ),
+
+      // Tampilkan daftar buku dari Firestore
       body: StreamBuilder<List<Buku>>(
         stream: firebaseService.getBukuStream(),
         builder: (context, snapshot) {
@@ -157,7 +181,9 @@ class _BukuPageState extends State<BukuPage> {
                           child: const Text("Batal"),
                         ),
                         ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
                           onPressed: () => Navigator.pop(context, true),
                           child: const Text("Hapus"),
                         ),
@@ -174,19 +200,21 @@ class _BukuPageState extends State<BukuPage> {
           );
         },
       ),
+
+      // FAB hanya muncul jika user admin
       floatingActionButton: currentUserRole == 'admin'
           ? FloatingActionButton(
-        backgroundColor: Colors.lightBlueAccent,
-        child: const Icon(Icons.book_rounded),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const BukuFormPage(),
-            ),
-          );
-        },
-      )
+              backgroundColor: Colors.lightBlueAccent,
+              child: const Icon(Icons.book_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const BukuFormPage(),
+                  ),
+                );
+              },
+            )
           : null,
     );
   }
